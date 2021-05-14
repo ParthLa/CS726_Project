@@ -71,7 +71,7 @@ class APGDAttack():
         elif self.loss == 'dlr':
             criterion_indiv = self.dlr_loss
         else:
-            raise ValueError('unknowkn loss')
+            raise ValueError('unknown loss')
         
         x_adv.requires_grad_()
         grad = torch.zeros_like(x)
@@ -159,14 +159,16 @@ class APGDAttack():
               counter3 += 1
           
               if counter3 == k:
-                  fl_oscillation = self.check_oscillation(loss_steps.detach().cpu().numpy(), i, k, loss_best.detach().cpu().numpy(), k3=self.thr_decr)
+                  fl_oscillation = self.check_oscillation(loss_steps.detach().cpu().numpy(), i, k, loss_best.detach().cpu().numpy(), k3=self.thr_decr) # cond 1
                   fl_reduce_no_impr = (~reduced_last_check) * (loss_best_last_check.cpu().numpy() >= loss_best.cpu().numpy())
                   fl_oscillation = ~(~fl_oscillation * ~fl_reduce_no_impr)
                   reduced_last_check = np.copy(fl_oscillation)
                   loss_best_last_check = loss_best.clone()
                   
-                  if np.sum(fl_oscillation) > 0:
-                      step_size[u[fl_oscillation]] /= 2.0 # need to add delta here: delta /=2
+                  if np.sum(fl_oscillation) > 0: # condition 1 or 2
+                      step_size[u[fl_oscillation]] /= 2.0
+                      delta /= 2.0
+                       # need to add delta here: delta /=2
                       n_reduced = fl_oscillation.astype(float).sum()
                       
                       fl_oscillation = np.where(fl_oscillation)
